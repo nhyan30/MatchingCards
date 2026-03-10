@@ -229,7 +229,7 @@ public class GameManager : MonoBehaviour
 
         UIManager.Instance.UpdateScore(score);
         UIManager.Instance.UpdateCombo(comboCount);
-
+        UIManager.Instance.ResetComboTimer();
         SaveSystem.SaveScore(score);
     }
 

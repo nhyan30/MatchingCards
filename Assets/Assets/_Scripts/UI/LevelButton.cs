@@ -30,7 +30,7 @@ public class LevelButton : MonoBehaviour
 
     public void OnClick()
     {
-        UIManager.Instance.ActivateUI(UIManager.Instance.gameUI);
+        UIManager.Instance.ActivateUI(UIManager.Instance.gamePlay);
         GameManager.Instance.LoadLevel(levelIndex);
     }
 

@@ -14,11 +14,11 @@ public class UIManager : MonoBehaviour
     public TMP_Text turnText;
 
     [Header("UI Panels")]
-    public GameObject startGameUI;
-    public GameObject levelLoadUI;
-    public GameObject gameUI;
-    public GameObject nextLevelUI;
-    public GameObject gameOverUI;
+    public GameObject mainMenu;
+    public GameObject levelSelect;
+    public GameObject gamePlay;
+    public GameObject nextLevel;
+    public GameObject gameOver;
 
     [Header("Buttons")]
     public Button startButton;
@@ -26,57 +26,48 @@ public class UIManager : MonoBehaviour
     public Button restartButton;
     public Button levelsButton;
 
+    [Header("Level")]
     public Transform levelContentTransform;
     public GameObject levelButtonPrefab;
 
     private void Awake()
     {
         Instance = this;
-
         UpdateScore(SaveSystem.GetSavedScore());
-
-        ActivateUI(startGameUI);
-
+        ActivateUI(mainMenu);
         RegisterButtons();
     }
 
     void RegisterButtons()
     {
-        if (startButton != null)
-            startButton.onClick.AddListener(OnStartPressed);
-
-        if (nextLevelButton != null)
-            nextLevelButton.onClick.AddListener(OnNextLevelPressed);
-
-        if (restartButton != null)
-            restartButton.onClick.AddListener(OnRestartPressed);
-
-        if (levelsButton != null)
-            levelsButton.onClick.AddListener(OnLevelsSelectPressed);
+        startButton.onClick.AddListener(OnStartPressed);
+        nextLevelButton.onClick.AddListener(OnNextLevelPressed);
+        restartButton.onClick.AddListener(OnRestartPressed);
+        levelsButton.onClick.AddListener(OnLevelsSelectPressed);
     }
 
     void OnStartPressed()
     {
-        ActivateUI(levelLoadUI);
-        LoadLevelButttons();
+        ActivateUI(levelSelect);
+        LoadLevelButtons();
     }
 
     void OnNextLevelPressed()
     {
-        ActivateUI(gameUI);
+        ActivateUI(gamePlay);
         GameManager.Instance.NextLevel();
     }
 
     void OnRestartPressed()
     {
-        ActivateUI(gameUI);
+        ActivateUI(gamePlay);
         GameManager.Instance.RestartGame();
     }
 
     public void OnLevelsSelectPressed()
     {
-        ActivateUI(levelLoadUI);
-        LoadLevelButttons();
+        ActivateUI(levelSelect);
+        LoadLevelButtons();
     }
 
     public void ResetLevels()
@@ -117,29 +108,24 @@ public class UIManager : MonoBehaviour
 
     public void ShowNextLevelUI()
     {
-        ActivateUI(nextLevelUI);
+        ActivateUI(nextLevel);
     }
 
     public void ShowGameOver()
     {
-        ActivateUI(gameOverUI);
+        ActivateUI(gameOver);
     }
 
     public void ActivateUI(GameObject target)
     {
-        startGameUI.SetActive(target == startGameUI);
-        levelLoadUI.SetActive(target == levelLoadUI);
-        gameUI.SetActive(target == gameUI);
-        nextLevelUI.SetActive(target == nextLevelUI);
-        gameOverUI.SetActive(target == gameOverUI);
+        mainMenu.SetActive(target == mainMenu);
+        levelSelect.SetActive(target == levelSelect);
+        gamePlay.SetActive(target == gamePlay);
+        nextLevel.SetActive(target == nextLevel);
+        gameOver.SetActive(target == gameOver);
     }
 
-    public void ApplicationQuit()
-    {
-        Application.Quit();
-    }
-
-    public void LoadLevelButttons()
+    public void LoadLevelButtons()
     {
         foreach (Transform child in levelContentTransform)
         {
@@ -158,5 +144,10 @@ public class UIManager : MonoBehaviour
                 levelButton.comboAmountTXT.text = $"Combo: {SaveSystem.GetSavedLevelCombo(i)}";
             }
         }
+    }
+
+    public void ApplicationQuit()
+    {
+        Application.Quit();
     }
 }
