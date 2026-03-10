@@ -1,5 +1,8 @@
+using System.Collections.Generic;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
@@ -7,38 +10,44 @@ public class UIManager : MonoBehaviour
     public static UIManager Instance;
 
     [Header("Texts")]
-    public TMP_Text scoreText;
-    public TMP_Text matchText;
-    public TMP_Text comboText;
-    public TMP_Text comboTimerText;
-    public TMP_Text turnText;
+    [SerializeField] private TMP_Text scoreText;
+    [SerializeField] private TMP_Text matchText;
+    [SerializeField] private TMP_Text comboText;
+    [SerializeField] private TMP_Text comboTimerText;
+    [SerializeField] private TMP_Text turnText;
 
-    [Header("UI Panels")]
-    public GameObject mainMenu;
-    public GameObject levelSelect;
-    public GameObject gamePlay;
-    public GameObject nextLevel;
-    public GameObject gameOver;
+    [Header("UI Panels (CanvasGroups)")]
+    [SerializeField] private CanvasGroup mainMenuCanvas;
+    [SerializeField] private CanvasGroup levelSelectCanvas;
+    [SerializeField] private CanvasGroup gamePlayCanvas;
+    [SerializeField] private CanvasGroup nextLevelCanvas;
+    [SerializeField] private CanvasGroup gameOverCanvas;
 
     [Header("Buttons")]
-    public Button startButton;
-    public Button nextLevelButton;
-    public Button restartButton;
-    public Button levelsButton;
+    [SerializeField] private Button startButton;
+    [SerializeField] private Button nextLevelButton;
+    [SerializeField] private Button restartButton;
+    [SerializeField] private Button levelsButton;
 
     [Header("Level")]
-    public Transform levelContentTransform;
-    public GameObject levelButtonPrefab;
+    [SerializeField] private Transform levelContentTransform;
+    [SerializeField] private GameObject levelButtonPrefab;
+
+    // Helper list to manage all canvases easily
+    public List<CanvasGroup> allPages;
 
     private void Awake()
     {
         Instance = this;
+
         UpdateScore(SaveSystem.GetSavedScore());
-        ActivateUI(mainMenu);
         RegisterButtons();
+
+        // Initialize UI state
+        SwitchScreen(mainMenuCanvas); // Show main menu 
     }
 
-    void RegisterButtons()
+    private void RegisterButtons()
     {
         startButton.onClick.AddListener(OnStartPressed);
         nextLevelButton.onClick.AddListener(OnNextLevelPressed);
@@ -46,96 +55,97 @@ public class UIManager : MonoBehaviour
         levelsButton.onClick.AddListener(OnLevelsSelectPressed);
     }
 
-    void OnStartPressed()
+    #region Button Handlers
+    private void OnStartPressed()
     {
-        ActivateUI(levelSelect);
+        SwitchScreen(levelSelectCanvas);
         LoadLevelButtons();
     }
 
-    void OnNextLevelPressed()
+    private void OnNextLevelPressed()
     {
-        ActivateUI(gamePlay);
+        SwitchScreen(gamePlayCanvas);
         GameManager.Instance.NextLevel();
     }
 
-    void OnRestartPressed()
+    private void OnRestartPressed()
     {
-        ActivateUI(gamePlay);
+        SwitchScreen(gamePlayCanvas);
         GameManager.Instance.RestartGame();
     }
 
     public void OnLevelsSelectPressed()
     {
-        ActivateUI(levelSelect);
+        SwitchScreen(levelSelectCanvas);
         LoadLevelButtons();
     }
+    #endregion
 
-    public void ResetLevels()
+    #region UI Updates
+    public void UpdateScore(int score) => scoreText.text = $"Score: {score}";
+    public void UpdateMatches(int matched, int total) => matchText.text = $"Matched: {matched}/{total}";
+    public void UpdateTurns(int turns) => turnText.text = $"Turn: {turns}";
+    public void UpdateCombo(int combo) => comboText.text = $"Combos: {combo}";
+    public void UpdateComboTimer(float time) => comboTimerText.text = "Combo Timer: " + Mathf.CeilToInt(time);
+    public void ResetComboTimer() => comboTimerText.text = "Combo Timer: 0";
+
+    public void ShowNextLevelUI() => SwitchScreen(nextLevelCanvas);
+    public void ShowGameOver() => SwitchScreen(gameOverCanvas);
+
+    // Helper to be called by LevelButton
+    public void ShowGameplay() => SwitchScreen(gamePlayCanvas);
+    #endregion
+
+    #region Fade Logic
+    public void SwitchScreen(CanvasGroup targetCanvas)
     {
-        SaveSystem.ResetProgress();
-        UpdateScore(SaveSystem.GetSavedScore());
+        foreach (var canvas in allPages)
+        {
+            if (canvas == targetCanvas)
+            {
+                Fade(canvas, true); // Fade In
+            }
+            else
+            {
+                Fade(canvas, false); // Fade Out
+            }
+        }
     }
 
-    public void UpdateScore(int score)
+    public void Fade(CanvasGroup canvasGroup, bool visible, UnityAction callback = null)
     {
-        scoreText.text = $"Score: {score}";
-    }
+        // Immediately disable interaction to prevent double clicks
+        canvasGroup.blocksRaycasts = false;
+        canvasGroup.interactable = false;
 
-    public void UpdateMatches(int matched, int total)
-    {
-        matchText.text = $"Matched: {matched}/{total}";
-    }
+        float targetAlpha = visible ? 1 : 0;
 
-    public void UpdateTurns(int turns)
-    {
-        turnText.text = $"Turn: {turns}";
+        canvasGroup.DOFade(targetAlpha, 0.3f).SetEase(Ease.InOutQuad)
+            .OnComplete(() =>
+            {
+                if (visible)
+                {
+                    canvasGroup.blocksRaycasts = true;
+                    canvasGroup.interactable = true;
+                }
+                callback?.Invoke();
+            });
     }
+    #endregion
 
-    public void UpdateCombo(int combo)
-    {
-        comboText.text = $"Combos: {combo}";
-    }
-
-    public void UpdateComboTimer(float time)
-    {
-        comboTimerText.text = "Combo Timer: " + Mathf.CeilToInt(time);
-    }
-
-    public void ResetComboTimer()
-    {
-        comboTimerText.text = "Combo Timer: 0";
-    }
-
-    public void ShowNextLevelUI()
-    {
-        ActivateUI(nextLevel);
-    }
-
-    public void ShowGameOver()
-    {
-        ActivateUI(gameOver);
-    }
-
-    public void ActivateUI(GameObject target)
-    {
-        mainMenu.SetActive(target == mainMenu);
-        levelSelect.SetActive(target == levelSelect);
-        gamePlay.SetActive(target == gamePlay);
-        nextLevel.SetActive(target == nextLevel);
-        gameOver.SetActive(target == gameOver);
-    }
-
+    #region Level Buttons
     public void LoadLevelButtons()
     {
+        // Clear existing buttons
         foreach (Transform child in levelContentTransform)
-        {
             Destroy(child.gameObject);
-        }
+
         for (int i = 0; i < GameManager.Instance.levelsData.levels.Count; i++)
         {
             var levelData = GameManager.Instance.levelsData.levels[i];
             var levelButtonObj = Instantiate(levelButtonPrefab, levelContentTransform);
             var levelButton = levelButtonObj.GetComponent<LevelButton>();
+
             if (levelButton != null)
             {
                 levelButton.SetLevelIndex(i, levelData.levelName);
@@ -145,9 +155,7 @@ public class UIManager : MonoBehaviour
             }
         }
     }
+    #endregion
 
-    public void ApplicationQuit()
-    {
-        Application.Quit();
-    }
+    public void ApplicationQuit() => Application.Quit();
 }

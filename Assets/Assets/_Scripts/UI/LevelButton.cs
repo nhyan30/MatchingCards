@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
@@ -11,26 +9,23 @@ public class LevelButton : MonoBehaviour
     public TMP_Text turmAmountTXT;
     public TMP_Text comboAmountTXT;
     public GameObject lockedSprite;
-    public bool isLocked = true;
+    
     private Button button;
+    private bool isLocked = true;
 
     private void Awake()
     {
         button = GetComponent<Button>();
-        if (button == null)
-        {
-            Debug.LogError("Button component not found on LevelButton.");
-        }
-        else
+        if (button != null)
         {
             button.onClick.AddListener(OnClick);
-            button.interactable = !isLocked;
         }
     }
 
     public void OnClick()
     {
-        UIManager.Instance.ActivateUI(UIManager.Instance.gamePlay);
+        // Use the centralized UI transition method
+        UIManager.Instance.ShowGameplay();
         GameManager.Instance.LoadLevel(levelIndex);
     }
 
@@ -39,6 +34,7 @@ public class LevelButton : MonoBehaviour
         levelIndex = index;
         levelText.text = levelName;
     }
+
     public void SetLocked(bool locked)
     {
         isLocked = locked;

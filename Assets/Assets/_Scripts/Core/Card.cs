@@ -5,7 +5,7 @@ using DG.Tweening;
 
 public class Card : MonoBehaviour
 {
-    internal int cardId;
+    public int cardId;
     public Sprite backImage;
     public Image cardImage;
 
