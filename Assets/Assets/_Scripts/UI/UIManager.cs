@@ -9,19 +9,22 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
 
+    [Header("Score Texts")]
+    [SerializeField] private TMP_Text scoreTextGameplay;
+    [SerializeField] private TMP_Text scoreTextLevelSelect;
+
     [Header("Texts")]
-    [SerializeField] private TMP_Text scoreText;
     [SerializeField] private TMP_Text matchText;
     [SerializeField] private TMP_Text comboText;
     [SerializeField] private TMP_Text comboTimerText;
     [SerializeField] private TMP_Text turnText;
 
     [Header("UI Panels (CanvasGroups)")]
-    [SerializeField] private CanvasGroup mainMenuCanvas;
-    [SerializeField] private CanvasGroup levelSelectCanvas;
-    [SerializeField] private CanvasGroup gamePlayCanvas;
-    [SerializeField] private CanvasGroup nextLevelCanvas;
-    [SerializeField] private CanvasGroup gameOverCanvas;
+    [SerializeField] private CanvasGroup mainMenu;
+    [SerializeField] private CanvasGroup levelSelect;
+    [SerializeField] private CanvasGroup gamePlay;
+    [SerializeField] private CanvasGroup nextLevel;
+    [SerializeField] private CanvasGroup gameOver;
 
     [Header("Buttons")]
     [SerializeField] private Button startButton;
@@ -44,7 +47,7 @@ public class UIManager : MonoBehaviour
         RegisterButtons();
 
         // Initialize UI state
-        SwitchScreen(mainMenuCanvas); // Show main menu 
+        SwitchScreen(mainMenu); // Show main menu 
     }
 
     private void RegisterButtons()
@@ -58,42 +61,58 @@ public class UIManager : MonoBehaviour
     #region Button Handlers
     private void OnStartPressed()
     {
-        SwitchScreen(levelSelectCanvas);
+        SwitchScreen(levelSelect);
         LoadLevelButtons();
     }
 
     private void OnNextLevelPressed()
     {
-        SwitchScreen(gamePlayCanvas);
+        SwitchScreen(gamePlay);
         GameManager.Instance.NextLevel();
     }
 
     private void OnRestartPressed()
     {
-        SwitchScreen(gamePlayCanvas);
+        SwitchScreen(gamePlay);
         GameManager.Instance.RestartGame();
     }
 
     public void OnLevelsSelectPressed()
     {
-        SwitchScreen(levelSelectCanvas);
+        SwitchScreen(levelSelect);
         LoadLevelButtons();
     }
     #endregion
 
     #region UI Updates
-    public void UpdateScore(int score) => scoreText.text = $"Score: {score}";
+
+    /// <summary>
+    /// Updates score on both Gameplay and LevelSelect pages.
+    /// Since each scoreText is a child of its respective canvas,
+    /// they will automatically show/hide with their parent canvas.
+    /// </summary>
+    public void UpdateScore(int score)
+    {
+        string scoreString = $"Score: {score}";
+
+        if (scoreTextGameplay != null)
+            scoreTextGameplay.text = scoreString;
+
+        if (scoreTextLevelSelect != null)
+            scoreTextLevelSelect.text = scoreString;
+    }
+
     public void UpdateMatches(int matched, int total) => matchText.text = $"Matched: {matched}/{total}";
     public void UpdateTurns(int turns) => turnText.text = $"Turn: {turns}";
     public void UpdateCombo(int combo) => comboText.text = $"Combos: {combo}";
     public void UpdateComboTimer(float time) => comboTimerText.text = "Combo Timer: " + Mathf.CeilToInt(time);
     public void ResetComboTimer() => comboTimerText.text = "Combo Timer: 0";
 
-    public void ShowNextLevelUI() => SwitchScreen(nextLevelCanvas);
-    public void ShowGameOver() => SwitchScreen(gameOverCanvas);
+    public void ShowNextLevelUI() => SwitchScreen(nextLevel);
+    public void ShowGameOver() => SwitchScreen(gameOver);
 
     // Helper to be called by LevelButton
-    public void ShowGameplay() => SwitchScreen(gamePlayCanvas);
+    public void ShowGameplay() => SwitchScreen(gamePlay);
     #endregion
 
     #region Fade Logic
