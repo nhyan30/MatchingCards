@@ -39,6 +39,9 @@ public class UIManager : MonoBehaviour
     // Helper list to manage all canvases easily
     public List<CanvasGroup> allPages;
 
+    // Track the current screen for music ducking logic
+    private CanvasGroup currentScreen;
+
     private void Awake()
     {
         Instance = this;
@@ -47,7 +50,7 @@ public class UIManager : MonoBehaviour
         RegisterButtons();
 
         // Initialize UI state
-        SwitchScreen(mainMenu); // Show main menu 
+        SwitchScreen(mainMenu); // Show main menu
     }
 
     private void RegisterButtons()
@@ -91,6 +94,11 @@ public class UIManager : MonoBehaviour
     /// Since each scoreText is a child of its respective canvas,
     /// they will automatically show/hide with their parent canvas.
     /// </summary>
+    public void ResetLevels()
+    {
+        SaveSystem.ResetProgress();
+        UpdateScore(SaveSystem.GetSavedScore());
+    }
     public void UpdateScore(int score)
     {
         string scoreString = $"Score: {score}";
@@ -118,6 +126,11 @@ public class UIManager : MonoBehaviour
     #region Fade Logic
     public void SwitchScreen(CanvasGroup targetCanvas)
     {
+        currentScreen = targetCanvas;
+
+        // Handle background music ducking based on which screen we're switching to
+        HandleMusicDucking(targetCanvas);
+
         foreach (var canvas in allPages)
         {
             if (canvas == targetCanvas)
@@ -149,6 +162,31 @@ public class UIManager : MonoBehaviour
                 }
                 callback?.Invoke();
             });
+    }
+
+    /// <summary>
+    /// Manages background music volume based on the active screen.
+    /// - Gameplay screen: music is ducked (reduced)
+    /// - All other screens (menu, level select, etc.): music is at full volume
+    /// </summary>
+    private void HandleMusicDucking(CanvasGroup targetCanvas)
+    {
+        if (AudioManager.Instance == null) return;
+
+        if (targetCanvas == gamePlay)
+        {
+            // Ducking is also handled by GameManager.LoadLevelRoutine,
+            // but we set it here too in case navigation happens differently
+            AudioManager.Instance.DuckMusicForGameplay();
+        }
+        else if (targetCanvas == mainMenu || targetCanvas == levelSelect ||
+                 targetCanvas == nextLevel || targetCanvas == gameOver)
+        {
+            // Restore full music volume on non-gameplay screens
+            // Note: GameManager.LevelCompleteRoutine already restores volume,
+            // this ensures restoration for any other navigation path
+            AudioManager.Instance.RestoreMusicVolume();
+        }
     }
     #endregion
 

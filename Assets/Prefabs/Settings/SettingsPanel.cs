@@ -1,0 +1,207 @@
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+/// <summary>
+/// Controls the Settings panel with volume sliders for Music and SFX.
+/// Music slider controls the background music volume.
+/// SFX slider controls flip, match, fail, and level complete sounds.
+/// Supports both Main Menu and Gameplay contexts.
+/// In Gameplay context, shows an additional Return button to exit to Level Select.
+/// </summary>
+public class SettingsPanel : MonoBehaviour
+{
+    [Header("UI References")]
+    [SerializeField] private CanvasGroup settingsPanel;
+    [SerializeField] private Slider musicVolumeSlider;
+    [SerializeField] private Slider sfxVolumeSlider;
+    [SerializeField] private TMP_Text musicVolumeText;
+    [SerializeField] private TMP_Text sfxVolumeText;
+    [SerializeField] private Button cancelButton;
+    [SerializeField] private Button returnButton;        // Return to Level Select (for gameplay context)
+    [SerializeField] private GameObject returnButtonContainer;  // Container to show/hide return button
+
+    [Header("Context")]
+    [SerializeField] private bool isGameplayContext = false;  // Set to true for gameplay settings panel
+
+    // Events
+    public event System.Action OnReturnToLevelSelect;
+
+    private void Awake()
+    {
+        SetupSliderListeners();
+        SetupButtonListeners();
+    }
+
+    private void Start()
+    {
+        // Initialize sliders with current volume values
+        if (AudioManager.Instance != null)
+        {
+            if (musicVolumeSlider != null)
+            {
+                musicVolumeSlider.value = AudioManager.Instance.GetMusicVolume();
+                UpdateMusicVolumeText(musicVolumeSlider.value);
+            }
+
+            if (sfxVolumeSlider != null)
+            {
+                sfxVolumeSlider.value = AudioManager.Instance.GetSFXVolume();
+                UpdateSFXVolumeText(sfxVolumeSlider.value);
+            }
+        }
+
+        // Setup return button visibility based on context
+        UpdateReturnButtonVisibility();
+
+        // Start hidden
+        Hide();
+    }
+
+    private void SetupSliderListeners()
+    {
+        if (musicVolumeSlider != null)
+        {
+            musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
+        }
+
+        if (sfxVolumeSlider != null)
+        {
+            sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
+        }
+    }
+
+    private void SetupButtonListeners()
+    {
+        if (cancelButton != null)
+        {
+            cancelButton.onClick.AddListener(OnCancelClicked);
+        }
+
+        if (returnButton != null)
+        {
+            returnButton.onClick.AddListener(OnReturnClicked);
+        }
+    }
+
+    #region Slider Handlers
+
+    private void OnMusicVolumeChanged(float value)
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.SetMusicVolume(value);
+        }
+        UpdateMusicVolumeText(value);
+    }
+
+    private void OnSFXVolumeChanged(float value)
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.SetSFXVolume(value);
+        }
+        UpdateSFXVolumeText(value);
+
+        // Play a sample SFX sound to demonstrate the volume level
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.Play(SoundType.Flip);
+        }
+    }
+
+    private void UpdateMusicVolumeText(float value)
+    {
+        if (musicVolumeText != null)
+        {
+            int percentage = Mathf.RoundToInt(value * 100);
+            musicVolumeText.text = $"{percentage}%";
+        }
+    }
+
+    private void UpdateSFXVolumeText(float value)
+    {
+        if (sfxVolumeText != null)
+        {
+            int percentage = Mathf.RoundToInt(value * 100);
+            sfxVolumeText.text = $"{percentage}%";
+        }
+    }
+
+    #endregion
+
+    #region Button Handlers
+
+    private void OnCancelClicked()
+    {
+        Hide();
+    }
+
+    private void OnReturnClicked()
+    {
+        Hide();
+
+        // Notify listeners that player wants to return to level select
+        OnReturnToLevelSelect?.Invoke();
+
+        // Navigate to level select screen (not restart the level)
+        if (isGameplayContext && UIManager.Instance != null)
+        {
+            UIManager.Instance.OnLevelsSelectPressed();
+        }
+    }
+
+    #endregion
+
+    #region Show/Hide
+
+    public void Show()
+    {
+        UIManager.Instance.Fade(settingsPanel, true);
+
+        // Refresh slider values from AudioManager
+        if (AudioManager.Instance != null)
+        {
+            if (musicVolumeSlider != null)
+            {
+                musicVolumeSlider.value = AudioManager.Instance.GetMusicVolume();
+            }
+            if (sfxVolumeSlider != null)
+            {
+                sfxVolumeSlider.value = AudioManager.Instance.GetSFXVolume();
+            }
+        }
+
+        // Update return button visibility
+        UpdateReturnButtonVisibility();
+    }
+
+    public void Hide()
+    {
+        UIManager.Instance.Fade(settingsPanel, false);
+    }
+
+    /// <summary>
+    /// Sets whether this panel is in gameplay context.
+    /// In gameplay context, the Return button will be visible.
+    /// </summary>
+    public void SetGameplayContext(bool isGameplay)
+    {
+        isGameplayContext = isGameplay;
+        UpdateReturnButtonVisibility();
+    }
+
+    private void UpdateReturnButtonVisibility()
+    {
+        if (returnButtonContainer != null)
+        {
+            returnButtonContainer.SetActive(isGameplayContext);
+        }
+        else if (returnButton != null)
+        {
+            returnButton.gameObject.SetActive(isGameplayContext);
+        }
+    }
+
+    #endregion
+}

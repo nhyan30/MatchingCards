@@ -77,6 +77,9 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.UpdateMatches(matchedPairs, totalPairs);
         UIManager.Instance.UpdateCombo(comboCount);
 
+        // Duck background music during gameplay
+        AudioManager.Instance.DuckMusicForGameplay();
+
         grid.GetComponent<DynamicGridScaler>().UpdateGrid(
             level.rows, level.columns, level.cardSpacing, level.padding);
 
@@ -212,12 +215,21 @@ public class GameManager : MonoBehaviour
         SaveSystem.SaveLevelTurn(currentLevelIndex, turnsTaken);
         SaveSystem.SaveLevelCombo(currentLevelIndex, comboCount);
 
+        // Restore music volume when level is complete
+        AudioManager.Instance.RestoreMusicVolume();
+
         UIManager.Instance.ShowNextLevelUI();
         AudioManager.Instance.Play(SoundType.LevelComplete);
     }
 
     private void Update()
     {
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.D))
+        {
+            print("Data reseted!");
+            UIManager.Instance.ResetLevels();
+        }
+
         if (!comboActive) return;
 
         comboTimer -= Time.deltaTime;
@@ -236,8 +248,9 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            // All levels completed - show game over screen (no GameOver sound, just show UI)
+            AudioManager.Instance.RestoreMusicVolume();
             UIManager.Instance.ShowGameOver();
-            AudioManager.Instance.Play(SoundType.GameOver);
         }
     }
 }
