@@ -44,4 +44,3 @@ public class Card : MonoBehaviour
         transform.DOScale(Vector3.zero, 0.4f);
     }
 }
-

@@ -46,7 +46,7 @@ public class UIManager : MonoBehaviour
     {
         Instance = this;
 
-        UpdateScore(SaveSystem.GetSavedScore());
+        UpdateScore(SaveSystem.GetTotalScore(6), false);
         RegisterButtons();
 
         // Initialize UI state
@@ -83,31 +83,38 @@ public class UIManager : MonoBehaviour
     public void OnLevelsSelectPressed()
     {
         SwitchScreen(levelSelect);
+
+        // Refresh total score when returning to level select
+        UpdateScore(SaveSystem.GetTotalScore(GameManager.Instance.levelsData.levels.Count), false);
         LoadLevelButtons();
     }
     #endregion
 
     #region UI Updates
 
-    /// <summary>
-    /// Updates score on both Gameplay and LevelSelect pages.
-    /// Since each scoreText is a child of its respective canvas,
-    /// they will automatically show/hide with their parent canvas.
-    /// </summary>
     public void ResetLevels()
     {
         SaveSystem.ResetProgress();
-        UpdateScore(SaveSystem.GetSavedScore());
+        UpdateScore(0, false);
     }
-    public void UpdateScore(int score)
+
+    /// <summary>
+    /// Updates score on Gameplay and/or LevelSelect pages.
+    /// isGameplayScore = true  -> Updates the current level score during gameplay
+    /// isGameplayScore = false -> Updates the total accumulated score on Level Select
+    /// </summary>
+    public void UpdateScore(int score, bool isGameplayScore)
     {
-        string scoreString = $"Score: {score}";
-
-        if (scoreTextGameplay != null)
-            scoreTextGameplay.text = scoreString;
-
-        if (scoreTextLevelSelect != null)
-            scoreTextLevelSelect.text = scoreString;
+        if (isGameplayScore)
+        {
+            if (scoreTextGameplay != null)
+                scoreTextGameplay.text = $"Score: {score}";
+        }
+        else
+        {
+            if (scoreTextLevelSelect != null)
+                scoreTextLevelSelect.text = $"Total Score: {score}";
+        }
     }
 
     public void UpdateMatches(int matched, int total) => matchText.text = $"Matched: {matched}/{total}";
@@ -166,8 +173,6 @@ public class UIManager : MonoBehaviour
 
     /// <summary>
     /// Manages background music volume based on the active screen.
-    /// - Gameplay screen: music is ducked (reduced)
-    /// - All other screens (menu, level select, etc.): music is at full volume
     /// </summary>
     private void HandleMusicDucking(CanvasGroup targetCanvas)
     {
@@ -175,16 +180,11 @@ public class UIManager : MonoBehaviour
 
         if (targetCanvas == gamePlay)
         {
-            // Ducking is also handled by GameManager.LoadLevelRoutine,
-            // but we set it here too in case navigation happens differently
             AudioManager.Instance.DuckMusicForGameplay();
         }
         else if (targetCanvas == mainMenu || targetCanvas == levelSelect ||
                  targetCanvas == nextLevel || targetCanvas == gameOver)
         {
-            // Restore full music volume on non-gameplay screens
-            // Note: GameManager.LevelCompleteRoutine already restores volume,
-            // this ensures restoration for any other navigation path
             AudioManager.Instance.RestoreMusicVolume();
         }
     }
@@ -209,6 +209,10 @@ public class UIManager : MonoBehaviour
                 levelButton.SetLocked(SaveSystem.GetUnlockedLevelIndex() < i);
                 levelButton.turmAmountTXT.text = $"Turn: {SaveSystem.GetSavedLevelTurn(i)}";
                 levelButton.comboAmountTXT.text = $"Combo: {SaveSystem.GetSavedLevelCombo(i)}";
+
+                // Show the saved High Score for this specific level
+                if (levelButton.scoreAmountTXT != null)
+                    levelButton.scoreAmountTXT.text = $"Score: {SaveSystem.GetLevelHighScore(i)}";
             }
         }
     }

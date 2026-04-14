@@ -40,8 +40,9 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        score = SaveSystem.GetSavedScore();
-        UIManager.Instance.UpdateScore(score);
+        // Show total accumulated score on main menu / level select
+        int totalScore = SaveSystem.GetTotalScore(levelsData.levels.Count);
+        UIManager.Instance.UpdateScore(totalScore, false);
     }
 
     public void RestartGame()
@@ -69,6 +70,7 @@ public class GameManager : MonoBehaviour
         turnsTaken = 0;
         matchedPairs = 0;
         comboCount = 0;
+        score = 0; // Reset level score to 0
 
         var level = levelsData.levels[levelIndex];
         totalPairs = level.cardImages.Count;
@@ -76,6 +78,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.UpdateTurns(turnsTaken);
         UIManager.Instance.UpdateMatches(matchedPairs, totalPairs);
         UIManager.Instance.UpdateCombo(comboCount);
+        UIManager.Instance.UpdateScore(score, true); // Show level score (0) on gameplay screen
 
         // Duck background music during gameplay
         AudioManager.Instance.DuckMusicForGameplay();
@@ -198,10 +201,10 @@ public class GameManager : MonoBehaviour
             comboTimer = comboDuration;
         }
 
-        UIManager.Instance.UpdateScore(score);
+        // Update the gameplay score text specifically
+        UIManager.Instance.UpdateScore(score, true);
         UIManager.Instance.UpdateCombo(comboCount);
         UIManager.Instance.ResetComboTimer();
-        SaveSystem.SaveScore(score);
     }
 
     IEnumerator LevelCompleteRoutine()
@@ -211,9 +214,17 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
+        // Save level stats
         SaveSystem.UnlockNextLevel(currentLevelIndex);
         SaveSystem.SaveLevelTurn(currentLevelIndex, turnsTaken);
         SaveSystem.SaveLevelCombo(currentLevelIndex, comboCount);
+
+        // Save high score for this specific level (only updates if beaten)
+        SaveSystem.SaveLevelHighScore(currentLevelIndex, score);
+
+        // Update total score text on Level Select screen in background
+        int totalScore = SaveSystem.GetTotalScore(levelsData.levels.Count);
+        UIManager.Instance.UpdateScore(totalScore, false);
 
         // Restore music volume when level is complete
         AudioManager.Instance.RestoreMusicVolume();
