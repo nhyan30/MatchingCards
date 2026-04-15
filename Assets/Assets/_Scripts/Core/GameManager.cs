@@ -191,7 +191,7 @@ public class GameManager : MonoBehaviour
             if (comboActive)
             {
                 comboCount++;
-                score += 50;
+                score += 20;
             }
             else
             {
