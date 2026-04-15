@@ -18,6 +18,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float matchCheckDelay = 0.5f;
     [SerializeField] private float comboDuration = 5f;
 
+    [Header("Score Effects")]
+    [SerializeField] private float comboPopupDelay = 0.35f; // Delay before the combo text pops up
+
     private List<Card> cards = new List<Card>();
     private List<Card> selectedCards = new List<Card>();
     private Transform grid;
@@ -40,7 +43,6 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        // Show total accumulated score on main menu / level select
         int totalScore = SaveSystem.GetTotalScore(levelsData.levels.Count);
         UIManager.Instance.UpdateScore(totalScore, false);
     }
@@ -70,7 +72,7 @@ public class GameManager : MonoBehaviour
         turnsTaken = 0;
         matchedPairs = 0;
         comboCount = 0;
-        score = 0; // Reset level score to 0
+        score = 0;
 
         var level = levelsData.levels[levelIndex];
         totalPairs = level.cardImages.Count;
@@ -78,9 +80,8 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.UpdateTurns(turnsTaken);
         UIManager.Instance.UpdateMatches(matchedPairs, totalPairs);
         UIManager.Instance.UpdateCombo(comboCount);
-        UIManager.Instance.UpdateScore(score, true); // Show level score (0) on gameplay screen
+        UIManager.Instance.UpdateScore(score, true);
 
-        // Duck background music during gameplay
         AudioManager.Instance.DuckMusicForGameplay();
 
         grid.GetComponent<DynamicGridScaler>().UpdateGrid(
@@ -168,7 +169,10 @@ public class GameManager : MonoBehaviour
         a.Hide();
         b.Hide();
         matchedPairs++;
-        UpdateScore(true);
+
+        Vector2 midPoint = (a.transform.position + b.transform.position) / 2f;
+        UpdateScore(true, midPoint);
+
         UIManager.Instance.UpdateMatches(matchedPairs, totalPairs);
 
         if (matchedPairs >= totalPairs)
@@ -184,7 +188,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ResetComboTimer();
     }
 
-    void UpdateScore(bool match)
+    void UpdateScore(bool match, Vector2 spawnPos)
     {
         if (match)
         {
@@ -192,16 +196,24 @@ public class GameManager : MonoBehaviour
             {
                 comboCount++;
                 score += 20;
+
+                // Show base points immediately
+                UIManager.Instance.ShowScorePopup("+10", spawnPos);
+
+                // Show combo multiplier with a delay in Red
+                UIManager.Instance.ShowComboPopupWithDelay($"x{comboCount + 1}", spawnPos, comboPopupDelay);
             }
             else
             {
                 comboActive = true;
                 score += 10;
+
+                // Show base points only
+                UIManager.Instance.ShowScorePopup("+10", spawnPos);
             }
             comboTimer = comboDuration;
         }
 
-        // Update the gameplay score text specifically
         UIManager.Instance.UpdateScore(score, true);
         UIManager.Instance.UpdateCombo(comboCount);
         UIManager.Instance.ResetComboTimer();
@@ -214,19 +226,14 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        // Save level stats
         SaveSystem.UnlockNextLevel(currentLevelIndex);
         SaveSystem.SaveLevelTurn(currentLevelIndex, turnsTaken);
         SaveSystem.SaveLevelCombo(currentLevelIndex, comboCount);
-
-        // Save high score for this specific level (only updates if beaten)
         SaveSystem.SaveLevelHighScore(currentLevelIndex, score);
 
-        // Update total score text on Level Select screen in background
         int totalScore = SaveSystem.GetTotalScore(levelsData.levels.Count);
         UIManager.Instance.UpdateScore(totalScore, false);
 
-        // Restore music volume when level is complete
         AudioManager.Instance.RestoreMusicVolume();
 
         UIManager.Instance.ShowNextLevelUI();
@@ -259,7 +266,6 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // All levels completed - show game over screen (no GameOver sound, just show UI)
             AudioManager.Instance.RestoreMusicVolume();
             UIManager.Instance.ShowGameOver();
         }

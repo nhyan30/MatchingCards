@@ -4867,6 +4867,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scoreTextGameplay: {fileID: 35603361}
   scoreTextLevelSelect: {fileID: 58031934}
+  scorePopupPrefab: {fileID: 3262096423953261352, guid: 689d114acf0e3b64588bacfabdffe48b, type: 3}
+  gameplayCanvas: {fileID: 1777765414}
   matchText: {fileID: 100013721}
   comboText: {fileID: 1224880612}
   comboTimerText: {fileID: 581182121}
@@ -6789,7 +6791,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1597651769}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
@@ -7463,7 +7465,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1777765413}
   m_Enabled: 1
-  m_Alpha: 0
+  m_Alpha: 1
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0

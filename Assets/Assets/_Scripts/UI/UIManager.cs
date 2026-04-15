@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
@@ -12,6 +13,10 @@ public class UIManager : MonoBehaviour
     [Header("Score Texts")]
     [SerializeField] private TMP_Text scoreTextGameplay;
     [SerializeField] private TMP_Text scoreTextLevelSelect;
+
+    [Header("Score Effects")]
+    [SerializeField] private GameObject scorePopupPrefab; // Drag your ScorePopup Prefab here
+    [SerializeField] private Transform gameplayCanvas;    // Drag your Gameplay Canvas here so popups render correctly
 
     [Header("Texts")]
     [SerializeField] private TMP_Text matchText;
@@ -98,11 +103,6 @@ public class UIManager : MonoBehaviour
         UpdateScore(0, false);
     }
 
-    /// <summary>
-    /// Updates score on Gameplay and/or LevelSelect pages.
-    /// isGameplayScore = true  -> Updates the current level score during gameplay
-    /// isGameplayScore = false -> Updates the total accumulated score on Level Select
-    /// </summary>
     public void UpdateScore(int score, bool isGameplayScore)
     {
         if (isGameplayScore)
@@ -128,6 +128,42 @@ public class UIManager : MonoBehaviour
 
     // Helper to be called by LevelButton
     public void ShowGameplay() => SwitchScreen(gamePlay);
+
+    // --- Spawn Score Popup (Base Score) ---
+    public void ShowScorePopup(string text, Vector2 position)
+    {
+        if (scorePopupPrefab == null || gameplayCanvas == null) return;
+
+        GameObject popupObj = Instantiate(scorePopupPrefab, gameplayCanvas);
+        ScorePopup popup = popupObj.GetComponent<ScorePopup>();
+
+        if (popup != null)
+        {
+            popup.Show(text, position);
+        }
+    }
+
+    // --- NEW: Spawn Combo Popup with Delay ---
+    public void ShowComboPopupWithDelay(string text, Vector2 position, float delay)
+    {
+        StartCoroutine(ComboPopupRoutine(text, position, delay));
+    }
+
+    private IEnumerator ComboPopupRoutine(string text, Vector2 position, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (scorePopupPrefab == null || gameplayCanvas == null) yield break;
+
+        GameObject popupObj = Instantiate(scorePopupPrefab, gameplayCanvas);
+        ScorePopup popup = popupObj.GetComponent<ScorePopup>();
+
+        if (popup != null)
+        {
+            // Spawn the combo text slightly above the base score text, and make it Red
+            popup.Show(text, position + new Vector2(0, 40f), Color.red);
+        }
+    }
     #endregion
 
     #region Fade Logic
@@ -135,7 +171,6 @@ public class UIManager : MonoBehaviour
     {
         currentScreen = targetCanvas;
 
-        // Handle background music ducking based on which screen we're switching to
         HandleMusicDucking(targetCanvas);
 
         foreach (var canvas in allPages)
@@ -153,7 +188,6 @@ public class UIManager : MonoBehaviour
 
     public void Fade(CanvasGroup canvasGroup, bool visible, UnityAction callback = null)
     {
-        // Immediately disable interaction to prevent double clicks
         canvasGroup.blocksRaycasts = false;
         canvasGroup.interactable = false;
 
@@ -171,9 +205,6 @@ public class UIManager : MonoBehaviour
             });
     }
 
-    /// <summary>
-    /// Manages background music volume based on the active screen.
-    /// </summary>
     private void HandleMusicDucking(CanvasGroup targetCanvas)
     {
         if (AudioManager.Instance == null) return;
@@ -193,7 +224,6 @@ public class UIManager : MonoBehaviour
     #region Level Buttons
     public void LoadLevelButtons()
     {
-        // Clear existing buttons
         foreach (Transform child in levelContentTransform)
             Destroy(child.gameObject);
 
@@ -210,7 +240,6 @@ public class UIManager : MonoBehaviour
                 levelButton.turmAmountTXT.text = $"Turn: {SaveSystem.GetSavedLevelTurn(i)}";
                 levelButton.comboAmountTXT.text = $"Combo: {SaveSystem.GetSavedLevelCombo(i)}";
 
-                // Show the saved High Score for this specific level
                 if (levelButton.scoreAmountTXT != null)
                     levelButton.scoreAmountTXT.text = $"Score: {SaveSystem.GetLevelHighScore(i)}";
             }
