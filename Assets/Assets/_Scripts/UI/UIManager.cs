@@ -84,6 +84,10 @@ public class UIManager : MonoBehaviour
         SwitchScreen(gamePlay);
         GameManager.Instance.RestartGame();
     }
+    public void OnBackPressed()
+    {
+        SwitchScreen(mainMenu);
+    }
 
     public void OnLevelsSelectPressed()
     {
@@ -108,20 +112,20 @@ public class UIManager : MonoBehaviour
         if (isGameplayScore)
         {
             if (scoreTextGameplay != null)
-                scoreTextGameplay.text = $"Score: {score}";
+                scoreTextGameplay.text = $"Score {score}";
         }
         else
         {
             if (scoreTextLevelSelect != null)
-                scoreTextLevelSelect.text = $"Total Score: {score}";
+                scoreTextLevelSelect.text = $"Total Score {score}";
         }
     }
 
-    public void UpdateMatches(int matched, int total) => matchText.text = $"Matched: {matched}/{total}";
-    public void UpdateTurns(int turns) => turnText.text = $"Turn: {turns}";
-    public void UpdateCombo(int combo) => comboText.text = $"Combos: {combo}";
-    public void UpdateComboTimer(float time) => comboTimerText.text = "Combo Timer: " + Mathf.CeilToInt(time);
-    public void ResetComboTimer() => comboTimerText.text = "Combo Timer: 0";
+    public void UpdateMatches(int matched, int total) => matchText.text = $"Matched {matched}/{total}";
+    public void UpdateTurns(int turns) => turnText.text = $"Turn {turns}";
+    public void UpdateCombo(int combo) => comboText.text = $"Combos {combo}";
+    public void UpdateComboTimer(float time) => comboTimerText.text = "Combo Timer " + Mathf.CeilToInt(time);
+    public void ResetComboTimer() => comboTimerText.text = "Combo Timer 0";
 
     public void ShowNextLevelUI() => SwitchScreen(nextLevel);
     public void ShowGameOver() => SwitchScreen(gameOver);
@@ -139,7 +143,7 @@ public class UIManager : MonoBehaviour
 
         if (popup != null)
         {
-            popup.Show(text, position);
+            popup.Show(text, position, Color.yellow);
         }
     }
 
@@ -237,11 +241,11 @@ public class UIManager : MonoBehaviour
             {
                 levelButton.SetLevelIndex(i, levelData.levelName);
                 levelButton.SetLocked(SaveSystem.GetUnlockedLevelIndex() < i);
-                levelButton.turmAmountTXT.text = $"Turn: {SaveSystem.GetSavedLevelTurn(i)}";
-                levelButton.comboAmountTXT.text = $"Combo: {SaveSystem.GetSavedLevelCombo(i)}";
+                levelButton.turnAmountTXT.text = $"Turn {SaveSystem.GetSavedLevelTurn(i)}";
+                levelButton.comboAmountTXT.text = $"Combo {SaveSystem.GetSavedLevelCombo(i)}";
 
                 if (levelButton.scoreAmountTXT != null)
-                    levelButton.scoreAmountTXT.text = $"Score: {SaveSystem.GetLevelHighScore(i)}";
+                    levelButton.scoreAmountTXT.text = $"Score {SaveSystem.GetLevelHighScore(i)}";
             }
         }
     }

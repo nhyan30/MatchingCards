@@ -6,7 +6,7 @@ public class LevelButton : MonoBehaviour
 {
     public int levelIndex;
     public TMP_Text levelText;
-    public TMP_Text turmAmountTXT;
+    public TMP_Text turnAmountTXT;
     public TMP_Text comboAmountTXT;
     public TMP_Text scoreAmountTXT; // NEW: Drag this in the Inspector
     public GameObject lockedSprite;

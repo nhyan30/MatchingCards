@@ -92,7 +92,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &7510531441168190891
 RectTransform:
   m_ObjectHideFlags: 0
@@ -427,7 +427,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   levelIndex: 0
   levelText: {fileID: 5791993457890466550}
-  turmAmountTXT: {fileID: 2402186202274718893}
+  turnAmountTXT: {fileID: 2402186202274718893}
   comboAmountTXT: {fileID: 8379838666928863017}
   scoreAmountTXT: {fileID: 1187407244488735513}
   lockedSprite: {fileID: 5791993457090618473}
@@ -599,11 +599,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 5791993457499753075}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 14.33, y: -18.6}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 25, y: 15}
   m_SizeDelta: {x: 160.8, y: 47.75}
-  m_Pivot: {x: 0, y: 0.5}
+  m_Pivot: {x: 0, y: 0}
 --- !u!222 &5631140205063428575
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -632,7 +632,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Turn:'
+  m_text: Turn
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2cc58371f5b8c984b8e566e0d7540032, type: 2}
   m_sharedMaterial: {fileID: -902766437250189150, guid: 2cc58371f5b8c984b8e566e0d7540032, type: 2}
@@ -737,7 +737,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 230, y: 52}
+  m_AnchoredPosition: {x: 25, y: 50}
   m_SizeDelta: {x: 160.8, y: 47.75}
   m_Pivot: {x: 0, y: 0}
 --- !u!222 &4167146684452180575
@@ -768,7 +768,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Combo:'
+  m_text: Score
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2cc58371f5b8c984b8e566e0d7540032, type: 2}
   m_sharedMaterial: {fileID: -902766437250189150, guid: 2cc58371f5b8c984b8e566e0d7540032, type: 2}
