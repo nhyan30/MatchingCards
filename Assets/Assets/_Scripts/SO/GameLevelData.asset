@@ -85,10 +85,10 @@ MonoBehaviour:
     - {fileID: 21300000, guid: ae959751c7d10bd48b2a0a94c5f54185, type: 3}
     - {fileID: 21300000, guid: 74d7f8e8847630e479ef0eab797871d2, type: 3}
   - levelName: 07
-    columns: 4
-    rows: 5
-    padding: 5
-    cardSpacing: 5
+    columns: 5
+    rows: 4
+    padding: 20
+    cardSpacing: 20
     cardImages:
     - {fileID: 21300000, guid: 970d1e85f573f214aaf7089b2ec18179, type: 3}
     - {fileID: 21300000, guid: 4c18acf74364e184783841decc4371c2, type: 3}
@@ -101,6 +101,24 @@ MonoBehaviour:
     - {fileID: 21300000, guid: ae959751c7d10bd48b2a0a94c5f54185, type: 3}
     - {fileID: 21300000, guid: 74d7f8e8847630e479ef0eab797871d2, type: 3}
   - levelName: 08
+    columns: 6
+    rows: 4
+    padding: 20
+    cardSpacing: 20
+    cardImages:
+    - {fileID: 21300000, guid: 970d1e85f573f214aaf7089b2ec18179, type: 3}
+    - {fileID: 21300000, guid: 4c18acf74364e184783841decc4371c2, type: 3}
+    - {fileID: 21300000, guid: c6303f198f8647a4e97ed4f210c0ebbc, type: 3}
+    - {fileID: 21300000, guid: ae5f529520a3102448ddf0687ff4afdf, type: 3}
+    - {fileID: 21300000, guid: 6eba50f570287a04d94d067981029628, type: 3}
+    - {fileID: 21300000, guid: 54ae533c3ff1b4e4abe8538ad05c0aec, type: 3}
+    - {fileID: 21300000, guid: 665684ea77643ee45a52cec9bf931e29, type: 3}
+    - {fileID: 21300000, guid: e54c4e49dbefa4a4b980a15c6a55a71a, type: 3}
+    - {fileID: 21300000, guid: ae959751c7d10bd48b2a0a94c5f54185, type: 3}
+    - {fileID: 21300000, guid: 74d7f8e8847630e479ef0eab797871d2, type: 3}
+    - {fileID: 21300000, guid: 74d7f8e8847630e479ef0eab797871d2, type: 3}
+    - {fileID: 21300000, guid: 74d7f8e8847630e479ef0eab797871d2, type: 3}
+  - levelName: 09
     columns: 6
     rows: 4
     padding: 20
