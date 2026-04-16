@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float comboDuration = 5f;
 
     [Header("Score Effects")]
-    [SerializeField] private float comboPopupDelay = 0.35f; // Delay before the combo text pops up
+    [SerializeField] private float comboPopupDelay = 0.35f;
 
     private List<Card> cards = new List<Card>();
     private List<Card> selectedCards = new List<Card>();
@@ -67,6 +67,7 @@ public class GameManager : MonoBehaviour
 
     IEnumerator LoadLevelRoutine(int levelIndex)
     {
+
         ClearBoard();
 
         turnsTaken = 0;
@@ -76,6 +77,15 @@ public class GameManager : MonoBehaviour
 
         var level = levelsData.levels[levelIndex];
         totalPairs = level.cardImages.Count;
+
+        // BUG FIX 1: Wait for the wipe transition to finish before spawning cards
+        if (WipeController.Instance != null)
+        {
+            //yield return new WaitWhile(() => WipeController.Instance.IsAnimating);
+            yield return new WaitForSeconds(1f);
+        }
+        // Update Level Name UI
+        UIManager.Instance.UpdateLevelName(level.levelName);
 
         UIManager.Instance.UpdateTurns(turnsTaken);
         UIManager.Instance.UpdateMatches(matchedPairs, totalPairs);
@@ -170,7 +180,8 @@ public class GameManager : MonoBehaviour
         b.Hide();
         matchedPairs++;
 
-        Vector2 midPoint = (a.transform.position + b.transform.position) / 2f;
+        // BUG FIX 2: Use Vector3 so we don't lose the Z axis positioning for the Camera canvas
+        Vector3 midPoint = (a.transform.position + b.transform.position) / 2f;
         UpdateScore(true, midPoint);
 
         UIManager.Instance.UpdateMatches(matchedPairs, totalPairs);
@@ -188,7 +199,8 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ResetComboTimer();
     }
 
-    void UpdateScore(bool match, Vector2 spawnPos)
+    // Changed Vector2 to Vector3
+    void UpdateScore(bool match, Vector3 spawnPos)
     {
         if (match)
         {
@@ -197,10 +209,7 @@ public class GameManager : MonoBehaviour
                 comboCount++;
                 score += 20;
 
-                // Show base points immediately
                 UIManager.Instance.ShowScorePopup("+10", spawnPos);
-
-                // Show combo multiplier with a delay in Red
                 UIManager.Instance.ShowComboPopupWithDelay($"x{comboCount + 1}", spawnPos, comboPopupDelay);
             }
             else
@@ -208,7 +217,6 @@ public class GameManager : MonoBehaviour
                 comboActive = true;
                 score += 10;
 
-                // Show base points only
                 UIManager.Instance.ShowScorePopup("+10", spawnPos);
             }
             comboTimer = comboDuration;

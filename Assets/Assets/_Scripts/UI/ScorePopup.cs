@@ -23,20 +23,28 @@ public class ScorePopup : MonoBehaviour
     /// <param name="text">The text to display (e.g., "+10" or "x2")</param>
     /// <param name="position">World space position to spawn (usually between the two matched cards)</param>
     /// <param name="color">Optional color for the text (defaults to original color)</param>
-    public void Show(string text, Vector2 position, Color? color = null)
+    /// <param name="yOffset">Optional pixel offset on the Y axis (useful for stacking combo text above score text)</param>
+    public void Show(string text, Vector3 position, Color? color = null, float yOffset = 0f)
     {
         popupText.text = text;
         popupText.alpha = 0f;
         popupText.rectTransform.localScale = Vector3.one;
 
-        // Apply color if provided, otherwise keep the default prefab color
+        // Apply color if provided
         if (color.HasValue)
         {
             popupText.color = color.Value;
         }
 
         // Position the popup at the midpoint between the matched cards
+        // Vector3 preserves the Z axis so it sits properly on Screen Space - Camera canvases
         rectTransform.position = position;
+
+        // Apply Y offset in UI pixels (works regardless of Canvas scaling)
+        if (yOffset != 0f)
+        {
+            rectTransform.anchoredPosition += new Vector2(0, yOffset);
+        }
 
         // Kill any existing tweens on this object to prevent overlapping glitches
         DOTween.Kill(this);

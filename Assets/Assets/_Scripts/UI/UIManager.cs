@@ -4,6 +4,7 @@ using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
@@ -14,9 +15,12 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TMP_Text scoreTextGameplay;
     [SerializeField] private TMP_Text scoreTextLevelSelect;
 
+    [Header("Level Info")]
+    [SerializeField] private TMP_Text levelNameText;
+
     [Header("Score Effects")]
-    [SerializeField] private GameObject scorePopupPrefab; // Drag your ScorePopup Prefab here
-    [SerializeField] private Transform gameplayCanvas;    // Drag your Gameplay Canvas here so popups render correctly
+    [SerializeField] private GameObject scorePopupPrefab;
+    [SerializeField] private Transform gameplayCanvas;
 
     [Header("Texts")]
     [SerializeField] private TMP_Text matchText;
@@ -41,10 +45,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Transform levelContentTransform;
     [SerializeField] private GameObject levelButtonPrefab;
 
-    // Helper list to manage all canvases easily
     public List<CanvasGroup> allPages;
 
-    // Track the current screen for music ducking logic
     private CanvasGroup currentScreen;
 
     private void Awake()
@@ -54,8 +56,7 @@ public class UIManager : MonoBehaviour
         UpdateScore(SaveSystem.GetTotalScore(6), false);
         RegisterButtons();
 
-        // Initialize UI state
-        SwitchScreen(mainMenu); // Show main menu
+        SwitchScreenImmediate(mainMenu);
     }
 
     private void RegisterButtons()
@@ -69,21 +70,21 @@ public class UIManager : MonoBehaviour
     #region Button Handlers
     private void OnStartPressed()
     {
-        SwitchScreen(levelSelect);
-        LoadLevelButtons();
+        SwitchScreen(levelSelect, () => LoadLevelButtons());
     }
 
     private void OnNextLevelPressed()
     {
-        SwitchScreen(gamePlay);
+        SwitchScreenImmediate(gamePlay);
         GameManager.Instance.NextLevel();
     }
 
     private void OnRestartPressed()
     {
-        SwitchScreen(gamePlay);
+        SwitchScreenImmediate(gamePlay);
         GameManager.Instance.RestartGame();
     }
+
     public void OnBackPressed()
     {
         SwitchScreen(mainMenu);
@@ -91,11 +92,11 @@ public class UIManager : MonoBehaviour
 
     public void OnLevelsSelectPressed()
     {
-        SwitchScreen(levelSelect);
-
-        // Refresh total score when returning to level select
-        UpdateScore(SaveSystem.GetTotalScore(GameManager.Instance.levelsData.levels.Count), false);
-        LoadLevelButtons();
+        SwitchScreen(levelSelect, () =>
+        {
+            UpdateScore(SaveSystem.GetTotalScore(GameManager.Instance.levelsData.levels.Count), false);
+            LoadLevelButtons();
+        });
     }
     #endregion
 
@@ -121,20 +122,27 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void UpdateLevelName(string levelName)
+    {
+        if (levelNameText != null)
+        {
+            levelNameText.text = $"Level {levelName}";
+        }
+    }
+
     public void UpdateMatches(int matched, int total) => matchText.text = $"Matched {matched}/{total}";
     public void UpdateTurns(int turns) => turnText.text = $"Turn {turns}";
     public void UpdateCombo(int combo) => comboText.text = $"Combos {combo}";
     public void UpdateComboTimer(float time) => comboTimerText.text = "Combo Timer " + Mathf.CeilToInt(time);
     public void ResetComboTimer() => comboTimerText.text = "Combo Timer 0";
 
-    public void ShowNextLevelUI() => SwitchScreen(nextLevel);
+    public void ShowNextLevelUI() => SwitchScreenImmediate(nextLevel);
     public void ShowGameOver() => SwitchScreen(gameOver);
 
-    // Helper to be called by LevelButton
     public void ShowGameplay() => SwitchScreen(gamePlay);
 
-    // --- Spawn Score Popup (Base Score) ---
-    public void ShowScorePopup(string text, Vector2 position)
+    // Changed Vector2 to Vector3
+    public void ShowScorePopup(string text, Vector3 position)
     {
         if (scorePopupPrefab == null || gameplayCanvas == null) return;
 
@@ -147,13 +155,14 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // --- NEW: Spawn Combo Popup with Delay ---
-    public void ShowComboPopupWithDelay(string text, Vector2 position, float delay)
+    // Changed Vector2 to Vector3
+    public void ShowComboPopupWithDelay(string text, Vector3 position, float delay)
     {
         StartCoroutine(ComboPopupRoutine(text, position, delay));
     }
 
-    private IEnumerator ComboPopupRoutine(string text, Vector2 position, float delay)
+    // Changed Vector2 to Vector3
+    private IEnumerator ComboPopupRoutine(string text, Vector3 position, float delay)
     {
         yield return new WaitForSeconds(delay);
 
@@ -164,28 +173,53 @@ public class UIManager : MonoBehaviour
 
         if (popup != null)
         {
-            // Spawn the combo text slightly above the base score text, and make it Red
-            popup.Show(text, position + new Vector2(0, 40f), Color.red);
+            // Using yOffset parameter so it plays nicely with UI scaling
+            popup.Show(text, position, Color.red, yOffset: 40f);
         }
     }
     #endregion
 
-    #region Fade Logic
-    public void SwitchScreen(CanvasGroup targetCanvas)
+    #region Fade/Wipe Logic
+
+    public void SwitchScreen(CanvasGroup targetCanvas, System.Action onSwitchContent = null)
     {
         currentScreen = targetCanvas;
 
-        HandleMusicDucking(targetCanvas);
+        if (WipeController.Instance != null)
+        {
+            WipeController.Instance.PlayTransition(() =>
+            {
+                HandleMusicDucking(targetCanvas);
+                SetCanvasVisibility(targetCanvas);
+                onSwitchContent?.Invoke();
+            });
+        }
+        else
+        {
+            HandleMusicDucking(targetCanvas);
+            SetCanvasVisibility(targetCanvas);
+            onSwitchContent?.Invoke();
+        }
+    }
 
+    private void SwitchScreenImmediate(CanvasGroup targetCanvas)
+    {
+        currentScreen = targetCanvas;
+        HandleMusicDucking(targetCanvas);
+        SetCanvasVisibility(targetCanvas);
+    }
+
+    private void SetCanvasVisibility(CanvasGroup targetCanvas)
+    {
         foreach (var canvas in allPages)
         {
             if (canvas == targetCanvas)
             {
-                Fade(canvas, true); // Fade In
+                Fade(canvas, true);
             }
             else
             {
-                Fade(canvas, false); // Fade Out
+                Fade(canvas, false);
             }
         }
     }
