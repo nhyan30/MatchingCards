@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
 
     [Header("References")]
     [SerializeField] private GameObject cardPrefab;
+    [SerializeField] private GameObject emptySlotPrefab; // NEW: A simple transparent UI prefab to hold grid spacing
     [SerializeField] private GridLayoutGroup gridLayout;
     public LevelData levelsData;
 
@@ -67,7 +68,6 @@ public class GameManager : MonoBehaviour
 
     IEnumerator LoadLevelRoutine(int levelIndex)
     {
-
         ClearBoard();
 
         turnsTaken = 0;
@@ -78,15 +78,13 @@ public class GameManager : MonoBehaviour
         var level = levelsData.levels[levelIndex];
         totalPairs = level.cardImages.Count;
 
-        // BUG FIX 1: Wait for the wipe transition to finish before spawning cards
+        // Wait for the wipe transition to finish before spawning cards
         if (WipeController.Instance != null)
         {
-            //yield return new WaitWhile(() => WipeController.Instance.IsAnimating);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitWhile(() => WipeController.Instance.IsAnimating);
         }
-        // Update Level Name UI
-        UIManager.Instance.UpdateLevelName(level.levelName);
 
+        UIManager.Instance.UpdateLevelName(level.levelName);
         UIManager.Instance.UpdateTurns(turnsTaken);
         UIManager.Instance.UpdateMatches(matchedPairs, totalPairs);
         UIManager.Instance.UpdateCombo(comboCount);
@@ -106,13 +104,47 @@ public class GameManager : MonoBehaviour
 
         Shuffle(ids);
 
-        foreach (int id in ids)
+        int idIndex = 0;
+
+        // Loop through the grid coordinates (rows and columns)
+        for (int row = 0; row < level.rows; row++)
         {
-            GameObject cardObj = Instantiate(cardPrefab, grid);
-            Card card = cardObj.GetComponent<Card>();
-            card.Init(id, level.cardImages[id]);
-            cards.Add(card);
-            yield return new WaitForSeconds(cardSpawnDelay);
+            for (int col = 0; col < level.columns; col++)
+            {
+                Vector2Int gridPos = new Vector2Int(col, row);
+
+                // Check if this coordinate is in the disabled positions list
+                bool isDisabled = level.disabledPositions != null && level.disabledPositions.Contains(gridPos);
+
+                if (isDisabled)
+                {
+                    // Spawn an empty placeholder to keep the grid layout intact
+                    if (emptySlotPrefab != null)
+                    {
+                        Instantiate(emptySlotPrefab, grid);
+                    }
+                    else
+                    {
+                        // Fallback if prefab is missing: create a blank object
+                        GameObject emptyObj = new GameObject("EmptySlot");
+                        emptyObj.transform.SetParent(grid, false);
+                        emptyObj.AddComponent<RectTransform>();
+                    }
+                }
+                else
+                {
+                    // Spawn an actual card
+                    if (idIndex < ids.Count)
+                    {
+                        GameObject cardObj = Instantiate(cardPrefab, grid);
+                        Card card = cardObj.GetComponent<Card>();
+                        card.Init(ids[idIndex], level.cardImages[ids[idIndex]]);
+                        cards.Add(card);
+                        idIndex++;
+                        yield return new WaitForSeconds(cardSpawnDelay);
+                    }
+                }
+            }
         }
 
         yield return new WaitForSeconds(previewTime);
@@ -180,7 +212,6 @@ public class GameManager : MonoBehaviour
         b.Hide();
         matchedPairs++;
 
-        // BUG FIX 2: Use Vector3 so we don't lose the Z axis positioning for the Camera canvas
         Vector3 midPoint = (a.transform.position + b.transform.position) / 2f;
         UpdateScore(true, midPoint);
 
@@ -199,7 +230,6 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ResetComboTimer();
     }
 
-    // Changed Vector2 to Vector3
     void UpdateScore(bool match, Vector3 spawnPos)
     {
         if (match)

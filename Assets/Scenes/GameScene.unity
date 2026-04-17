@@ -6497,6 +6497,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cardPrefab: {fileID: 4142822408865356013, guid: 3015f0637a5efe64ab3d7eee148eb0a8, type: 3}
+  emptySlotPrefab: {fileID: 4142822408865356013, guid: fbbedd29d3fabde4d88b307934ccca65, type: 3}
   gridLayout: {fileID: 398725347}
   levelsData: {fileID: 11400000, guid: 5f8447d5adf19a640bf981c8f6550357, type: 2}
   cardSpawnDelay: 0.1
